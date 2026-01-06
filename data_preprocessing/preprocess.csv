@@ -1,0 +1,11 @@
+Student Name,Gender,Age,City,Course,Marks,Placement Status
+Amit,Male,21.0,Mumbai,AI,85.0,Yes
+Riya,Female,22.0,Pune,ML,90.0,Yes
+Suresh,Male,,Delhi,AI,78.0,No
+Neha,Female,21.0,,DS,,Yes
+Rahul,,23.0,Mumbai,ML,88.0,No
+Pooja,Female,22.0,Pune,,92.0,Yes
+,Male,24.0,Delhi,DS,80.0,
+Karan,Male,,Mumbai,AI,75.0,No
+Anita,Female,21.0,,ML,,Yes
+Vikas,,23.0,Pune,DS,89.0,Yes
