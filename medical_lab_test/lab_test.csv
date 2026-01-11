@@ -1,0 +1,21 @@
+Patient ID , Patient Age, Gender , City , Test Name , Test Date , Sample Type , Result Value , Unit , Normal Range , Test Status , Lab Technician , Report Delay (hrs), Machine ID , Re-Test Required , Cost ₹ , Insurance Covered , Doctor Remarks
+P_001, 45, Male , Mumbai , HbA1c , 2024-01-12 , Blood , 8.9 , %, 4.0-5.6 , Abnormal , Tech_12 ,, MCH_09 , Yes , 1200 , Yes , diabetic range
+P_002, 32, Female, Pune, CBC , 12/01/2024, Blood, , g/dL, 12-16, Pending, Tech_07, 18, MCH_03, No, 450, No, 
+P_003, 67, Male, Delhi , Lipid Profile, 2024-01-13, Blood , 312 , mg/dL , <200 , Abnormal , Tech_02 ,  , MCH_01 ,  , 2200 , Yes , extremely high
+P_004, 29, Female , Bengaluru, Thyroid (TSH), 2024-01-13 , Blood, 0.12 , µIU/mL , 0.4-4.0 , Abnormal, Tech_09 , 9 , MCH_07 , Yes , 800 , No , possible hyper
+P_005, 54, Male, Mumbai, CBC, 2024-01-14, Blood, 11.2, g/dL, 12-16, , Tech_03, 5, MCH_03, No, 500, Yes, mild anemia
+P_006, 41, Female ,  , Vitamin D , 14-01-2024 , Blood , 9 ,,,, Tech_11 , 24 , MCH_05 , Yes , 1800 , No , severe deficiency
+P_007, 38, Male, Pune , LFT , 2024/01/15 , Blood, 72 , U/L ,  , Abnormal, Tech_06 , 7 , MCH_02 , No , 950 , Yes , fatty liver suspected
+P_008, 72, Male , Delhi , Creatinine , 2024-01-15 ,  , 5.8 , mg/dL , 0.6-1.3 , Abnormal , Tech_01 , 2 , MCH_01 ,  , 600 , Yes , kidney failure risk
+P_009, 26, Female , Bengaluru , Urine Routine , 15/01/2024 , Urine , , , normal , Pending , Tech_10 ,, MCH_06 , No , 300 , No , sample delayed
+P_010, 59, Male ,  , PSA , 2024-01-16 ,  , 18.6 , ng/mL , <4.0 , Abnormal , Tech_04 , 4 , MCH_08 , Yes , 2100 , Yes , oncology referral
+P_011, 34, Female , Pune , Thyroid (TSH) , 2024-01-16 , Blood , 3.1 , µIU/mL , 0.4-4.0 , Normal , Tech_09 , 6 , MCH_07 , No , 800 , Yes , 
+P_012, 48, Male ,, HbA1c , 16-01-2024 , Blood , 5.4 , %, 4.0-5.6 , Normal , Tech_12 , 5 , MCH_09 , No , 1200 ,  , controlled
+P_013, 63, Female , Delhi , Lipid Profile , 2024-01-17 , Blood , 198 , mg/dL , <200 , Normal , Tech_02 , 8 , MCH_01 , No , 2200 , Yes , borderline
+P_014, 52, Male, Chennai , CRP , 2024-01-17 , Blood , 96 , mg/L , <10 , Abnormal , Tech_08 , 12 , MCH_04 , Yes , 700 , No , severe inflammation
+P_015, 28, Female , Mumbai , Vitamin B12 , 17/01/2024 , Blood , 110 , pg/mL , 200-900 , Abnormal , Tech_11 , 20 , MCH_05 , Yes , 1600 , No , neurological risk
+P_016, 81, Male , Delhi , CBC , 2024-01-18 , Blood , 6.1 , g/dL ,  , Abnormal , Tech_03 , 10 , MCH_03 , Yes , 450 , Yes , critical low Hb
+P_017, 36, Female , Pune , LFT , 2024-01-18 , Blood , 39 , U/L , <40 , Normal , Tech_06 , 6 , MCH_02 , No , 950 , Yes , 
+P_018, 44, Male , Bengaluru , Creatinine , 2024-01-18 , Blood , 1.1 , mg/dL , 0.6-1.3 , Normal , Tech_01 , 4 , MCH_01 , No , 600 , Yes , 
+P_019, 57, Female , Hyderabad , ESR , 18-01-2024 ,  , 112 , mm/hr , <20 , Abnormal , Tech_08 , 14 , MCH_04 , Yes , 400 , No , autoimmune suspected
+P_020, 23, Male ,, Urine Routine , 2024-01-19 ,  ,  , ,, Normal , Tech_10 , 5 , MCH_06 , No , 300 , No , 
