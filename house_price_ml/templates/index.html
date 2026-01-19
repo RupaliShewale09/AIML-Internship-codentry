@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Prediction | Real Estate AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .header {
+            background: linear-gradient(to right, #2c3e50, #4a6491);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 15px;
+        }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: #f8fafc;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3498db;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-input:hover {
+            border-color: #bdc3c7;
+        }
+
+        .parking-toggle {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .parking-option {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            border: 2px solid #e0e6ed;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .parking-option:hover {
+            background-color: #e9ecef;
+        }
+
+        .parking-option.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .predict-btn:hover {
+            background: linear-gradient(to right, #2980b9, #1c5a87);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .result-container {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            text-align: center;
+            border-left: 5px solid #2ecc71;
+            animation: fadeIn 0.5s ease;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .result-title {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .predicted-price {
+            font-size: 32px;
+            font-weight: 800;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+
+        .currency {
+            font-size: 20px;
+            color: #2c3e50;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 500px) {
+            .container {
+                border-radius: 15px;
+            }
+            
+            .header, .form-container {
+                padding: 20px;
+            }
+            
+            .header h2 {
+                font-size: 24px;
+            }
+            
+            .predicted-price {
+                font-size: 28px;
+            }
+        }
+
+        /* Tooltip styling */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            color: #3498db;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #2c3e50;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 13px;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2><i class="fas fa-home"></i> House Price Prediction</h2>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" id="predictionForm">
+            <div class="form-group">
+                <label for="area_sqft">Area (Square Feet) <span class="tooltip">?
+                    <span class="tooltiptext">Total living area of the house in square feet</span>
+                </span></label>
+                <div class="input-with-icon">
+                    <i class="fas fa-ruler-combined"></i>
+                    <input type="number" id="area_sqft" name="area_sqft" class="form-input" placeholder="e.g., 1500" min="500" max="10000" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="bedrooms">Number of Bedrooms <span class="tooltip">?
+                    <span class="tooltiptext">Total number of bedrooms in the house</span>
+                </span></label>
+                <div class="input-with-icon">
+                    <i class="fas fa-bed"></i>
+                    <input type="number" id="bedrooms" name="bedrooms" class="form-input" placeholder="e.g., 3" min="1" max="10" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="bathrooms">Number of Bathrooms <span class="tooltip">?
+                    <span class="tooltiptext">Total number of bathrooms in the house</span>
+                </span></label>
+                <div class="input-with-icon">
+                    <i class="fas fa-bath"></i>
+                    <input type="number" id="bathrooms" name="bathrooms" class="form-input" placeholder="e.g., 2" min="1" max="10" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="floors">Number of Floors <span class="tooltip">?
+                    <span class="tooltiptext">Total number of floors/stories in the house</span>
+                </span></label>
+                <div class="input-with-icon">
+                    <i class="fas fa-building"></i>
+                    <input type="number" id="floors" name="floors" class="form-input" placeholder="e.g., 2" min="1" max="5" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Parking Available <span class="tooltip">?
+                    <span class="tooltiptext">Does the house have dedicated parking space?</span>
+                </span></label>
+                <div class="parking-toggle">
+                    <div class="parking-option" data-value="1">Yes</div>
+                    <div class="parking-option active" data-value="0">No</div>
+                </div>
+                <input type="number" id="parking" name="parking" class="hidden-input" value="0" required>
+            </div>
+
+            <div class="form-group">
+                <label for="age_of_house">Age of House (Years) <span class="tooltip">?
+                    <span class="tooltiptext">How many years since the house was built</span>
+                </span></label>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="number" id="age_of_house" name="age_of_house" class="form-input" placeholder="e.g., 10" min="0" max="100" required>
+                </div>
+            </div>
+
+            <button type="submit" class="predict-btn">
+                <i class="fas fa-calculator"></i> Predict House Price
+            </button>
+        </form>
+
+        {% if predicted_price %}
+        <div class="result-container show">
+            <div class="result-title">Estimated Market Value</div>
+            <div class="predicted-price"><span class="currency">$</span>{{ predicted_price }}</div>
+        </div>
+        {% else %}
+        <div class="result-container" id="resultPlaceholder">
+            <div class="result-title">Estimated Market Value</div>
+            <div class="predicted-price"><span class="currency">$</span>0</div>
+            <p style="color: #7f8c8d; font-size: 14px; margin-top: 8px;">
+                <i class="fas fa-info-circle"></i> Fill in the details and click "Predict House Price"
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Interactive parking toggle
+    document.querySelectorAll('.parking-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove active class from all options
+            document.querySelectorAll('.parking-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            
+            // Add active class to clicked option
+            this.classList.add('active');
+            
+            // Update the hidden input value
+            document.getElementById('parking').value = this.getAttribute('data-value');
+        });
+    });
+
+    // Form input validation and interactivity
+    document.querySelectorAll('.form-input').forEach(input => {
+        // Add focus effect
+        input.addEventListener('focus', function() {
+            this.parentElement.parentElement.style.transform = 'translateY(-2px)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.parentElement.style.transform = 'translateY(0)';
+        });
+        
+        // Validate on input
+        input.addEventListener('input', function() {
+            if (this.checkValidity()) {
+                this.style.borderColor = '#2ecc71';
+            } else {
+                this.style.borderColor = '#e74c3c';
+            }
+        });
+    });
+
+    // Form submission animation
+    document.getElementById('predictionForm').addEventListener('submit', function(e) {
+        // Check if all fields are valid
+        const inputs = this.querySelectorAll('input[required]');
+        let allValid = true;
+        
+        inputs.forEach(input => {
+            if (!input.checkValidity()) {
+                input.style.borderColor = '#e74c3c';
+                allValid = false;
+            }
+        });
+        
+        if (!allValid) {
+            e.preventDefault();
+            // Show a visual cue that there are errors
+            this.classList.add('form-error');
+            setTimeout(() => {
+                this.classList.remove('form-error');
+            }, 1000);
+        } else {
+            // Add loading effect to button
+            const btn = this.querySelector('.predict-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+            btn.disabled = true;
+        }
+    });
+
+    // If there's a predicted price from server, ensure result is shown
+    {% if predicted_price %}
+        document.getElementById('resultPlaceholder')?.classList.add('show');
+    {% endif %}
+</script>
+
+</body>
+</html>
