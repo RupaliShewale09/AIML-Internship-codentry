@@ -8,6 +8,10 @@ app = Flask(__name__)
 model = joblib.load("house_price_ml\\house_price_pred.pkl")
 
 @app.route("/", methods=["GET", "POST"])
+def home():
+    return render_template("home.html")
+
+@app.route("/predict", methods=["GET", "POST"])
 def index():
     predicted_price = None
 
