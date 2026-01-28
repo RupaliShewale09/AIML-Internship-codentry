@@ -15,8 +15,6 @@ router = APIRouter()
 # -------------------------
 # AUTH
 # -------------------------
-# In your backend/routes.py, update login function:
-# backend/routes.py
 
 @router.post("/login")
 def login(
