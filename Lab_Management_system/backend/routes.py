@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 
 from backend.database import get_db, Base, engine
@@ -19,14 +19,18 @@ router = APIRouter()
 # backend/routes.py
 
 @router.post("/login")
-def login(credentials: UserCreate, db: Session = Depends(get_db)):
+def login(
+    username: str = Form(...), 
+    password: str = Form(...), 
+    db: Session = Depends(get_db)
+):
     # 1. Check for Admin (static check)
-    if credentials.username == "admin" and credentials.password == "admin123":
+    if username == "admin" and password == "admin123":
         return {"id": 0, "username": "admin", "role": "admin"}
     
     # 2. Check Database for User
-    user = db.query(User).filter(User.username == credentials.username).first()
-    if not user or not verify_password(credentials.password, user.password_hash):
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # 3. Logic Fix: Return the specific Role ID (Patient ID or Tech ID)
@@ -41,20 +45,20 @@ def login(credentials: UserCreate, db: Session = Depends(get_db)):
     
     return {"id": profile_id, "username": user.username, "role": user.role}
 
-# -------------------------
-# ADMIN
-# -------------------------
-ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
 
 @router.post("/admin/technician", response_model=TechnicianOut)
-def add_technician(tech: TechnicianCreate, db: Session = Depends(get_db)):
+def add_technician(username: str = Form(...),
+    password: str = Form(...),
+    name: str = Form(...),
+    db: Session = Depends(get_db)
+):
     # create user
-    user = User(username=tech.username, password_hash=hash_password(tech.password), role="technician")
+    user = User(username=username, password_hash=hash_password(password), role="technician")
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    technician = Technician(user_id=user.id, name=tech.name)
+    technician = Technician(user_id=user.id, name=name)
     db.add(technician)
     db.commit()
     db.refresh(technician)
@@ -77,21 +81,31 @@ def list_today_appointments(db: Session = Depends(get_db)):
 # PATIENT
 # -------------------------
 @router.post("/register/patient", response_model=PatientOut)
-def register_patient(patient: PatientCreate, db: Session = Depends(get_db)):
-    user = User(username=patient.username, password_hash=hash_password(patient.password), role="patient")
+def register_patient(username: str = Form(...),
+    password: str = Form(...),
+    name: str = Form(...),
+    dob: str = Form(...),
+    gender: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    user = User(username=username, password_hash=hash_password(password), role="patient")
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    pat = Patient(user_id=user.id, name=patient.name, dob=patient.dob, gender=patient.gender)
+    pat = Patient(user_id=user.id, name=name, dob=dob, gender=gender)
     db.add(pat)
     db.commit()
     db.refresh(pat)
     return pat
 
 @router.post("/patient/appointment", response_model=AppointmentOut)
-def book_appointment(app: AppointmentCreate, db: Session = Depends(get_db)):
-    appointment = Appointment(patient_id=app.patient_id, technician_id=app.technician_id, schedule_time=app.schedule_time)
+def book_appointment(patient_id: int = Form(...),
+    technician_id: int = Form(...),
+    schedule_time: datetime = Form(...),
+    db: Session = Depends(get_db)
+):
+    appointment = Appointment(patient_id=patient_id, technician_id=technician_id, schedule_time=schedule_time)
     db.add(appointment)
     db.commit()
     db.refresh(appointment)
@@ -119,17 +133,37 @@ def get_technician_appointments(technician_id: int, db: Session = Depends(get_db
     return db.query(Appointment).filter(Appointment.technician_id == technician_id).all()
 
 @router.post("/technician/report", response_model=TestReportOut)
-def add_test_report(report: TestReportCreate, db: Session = Depends(get_db)):
-    predicted_disease, risk_scores = get_disease_prediction(report.test_data)
+def add_test_report(appointment_id: int = Form(...),
+    Insulin: float = Form(...),
+    BMI: float = Form(...),
+    Cholesterol: float = Form(...),
+    Glucose: float = Form(...),
+    Hematocrit: float = Form(...),
+    Red_Blood_Cells: float = Form(...),
+    White_Blood_Cells: float = Form(...),
+    Platelets: float = Form(...),
+    Mean_Corpuscular_Volume: float = Form(...),
+    Mean_Corpuscular_Hemoglobin: float = Form(...),
+    Mean_Corpuscular_Hemoglobin_Concentration: float = Form(...),
+    Hemoglobin: float = Form(...),
+    db: Session = Depends(get_db)
+):
+    test_data_list = [
+        Insulin, BMI, Cholesterol, Glucose, Hematocrit, Red_Blood_Cells, 
+        White_Blood_Cells, Platelets, Mean_Corpuscular_Volume, 
+        Mean_Corpuscular_Hemoglobin, Mean_Corpuscular_Hemoglobin_Concentration, Hemoglobin
+    ]
+
+    predicted_disease, risk_scores = get_disease_prediction(test_data_list)
     test_report = TestReport(
-        appointment_id=report.appointment_id,
-        test_data=report.test_data,
+        appointment_id=appointment_id,
+        test_data=test_data_list,
         predicted_disease=predicted_disease,
         risk_scores=risk_scores
     )
     db.add(test_report)
     # mark appointment as done
-    appointment = db.query(Appointment).filter(Appointment.id == report.appointment_id).first()
+    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
     if appointment:
         appointment.status = "done"
     db.commit()

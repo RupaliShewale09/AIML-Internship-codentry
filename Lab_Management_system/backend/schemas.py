@@ -64,7 +64,18 @@ class AppointmentOut(BaseModel):
 # Test Report Schemas
 class TestReportCreate(BaseModel):
     appointment_id: int
-    test_data: List[float]
+    Insulin: float
+    BMI: float
+    Cholesterol: float
+    Glucose: float
+    Hematocrit: float
+    Red_Blood_Cells: float
+    White_Blood_Cells: float
+    Platelets: float
+    Mean_Corpuscular_Volume: float
+    Mean_Corpuscular_Hemoglobin: float
+    Mean_Corpuscular_Hemoglobin_Concentration: float
+    Hemoglobin: float
 
 class TestReportOut(BaseModel):
     id: int
