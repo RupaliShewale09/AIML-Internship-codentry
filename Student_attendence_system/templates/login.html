@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-80 py-5">
+    <div class="col-lg-5 col-md-6">
+        <div class="text-center mb-5">
+            <div class="rounded-circle-icon mb-3">
+                <i class="bi bi-shield-lock text-white"></i>
+            </div>
+            <h2 class="fw-bold">Admin Portal</h2>
+            <p class="text-muted">Sign in to manage attendance system</p>
+        </div>
+        
+        <div class="card border-0 shadow-lg">
+            <div class="card-body p-5">
+                <form id="loginForm" class="needs-validation" novalidate>
+                    <div class="mb-4">
+                        <label for="username" class="form-label fw-semibold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-person text-primary"></i>
+                            </span>
+                            <input type="text" name="username" class="form-control" id="username" 
+                                   placeholder="Enter username" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-lock text-primary"></i>
+                            </span>
+                            <input type="password" name="password" class="form-control" id="password" 
+                                   placeholder="Enter password" required>
+                        </div>
+                    </div>
+                    
+                    <div id="loginResponse" class="mb-3"></div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    </button>
+                </form>
+                
+                <div class="text-center mt-4 pt-3 border-top">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Default credentials: admin / admin123
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('loginForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const responseDiv = document.getElementById('loginResponse');
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        
+        // Clear previous messages
+        responseDiv.innerHTML = "";
+        
+        // Add loading state
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Authenticating...';
+        submitBtn.disabled = true;
+
+        const formData = new FormData(e.target);
+
+        try {
+            const response = await fetch('/admin/login', {
+                method: 'POST',
+                body: formData 
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Success message
+                responseDiv.innerHTML = `
+                    <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <div>Login successful! Redirecting...</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Brief delay to show message
+                setTimeout(() => {
+                    window.location.href = "/admin";
+                }, 1000);
+
+            } else {
+                // Error message
+                responseDiv.innerHTML = `
+                    <div class="alert alert-danger alert-dismissible fade show mb-0" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>Invalid credentials. Please try again.</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                
+                // Restore button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        } catch (err) {
+            // Network error
+            responseDiv.innerHTML = `
+                <div class="alert alert-warning alert-dismissible fade show mb-0" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-wifi-off me-2"></i>
+                        <div>Connection error. Please check your network.</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    };
+
+    // Form validation
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+</script>
+
+<style>
+    .min-vh-80 {
+        min-height: 80vh;
+    }
+    
+    .input-group-text {
+        border: 1px solid #dee2e6;
+        border-right: none;
+        background-color: #f8f9fa;
+    }
+    
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #4361ee;
+    }
+    
+    .alert {
+        border-radius: 8px;
+        border: none;
+    }
+</style>
+{% endblock %}

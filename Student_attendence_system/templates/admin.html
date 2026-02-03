@@ -1,0 +1,594 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold">Admin Dashboard</h2>
+        <p class="text-muted">Manage students, sessions, and monitor attendance</p>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-danger shadow-sm" onclick="logout()">
+            <i class="bi bi-box-arrow-left me-2"></i>Logout
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white border-0 pt-3">
+        <ul class="nav nav-tabs nav-tabs-custom">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dashboard">
+                    <i class="bi bi-grid me-2"></i>Dashboard
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#add-student">
+                    <i class="bi bi-person-plus me-2"></i>Add Student
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#add-session">
+                    <i class="bi bi-calendar-plus me-2"></i>Add Session
+                </button>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="card-body p-4">
+        <div class="tab-content">
+            
+            <!-- Dashboard Tab -->
+            <div class="tab-pane fade show active" id="dashboard">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Today's Sessions</h5>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadSessions()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+                
+                <div id="session-list" class="row g-3">
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted">Loading sessions...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add Student Tab -->
+            <div class="tab-pane fade" id="add-student">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-3">Register New Student</h5>
+                                <form id="studentForm">
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name *</label>
+                                        <input type="text" name="name" class="form-control" placeholder="Enter full name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email Address *</label>
+                                        <input type="email" name="email" class="form-control" placeholder="student@email.com" required>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="form-label">Roll Number *</label>
+                                        <input type="text" name="roll_no" class="form-control" placeholder="e.g., CS2023001" required>
+                                        <div class="form-text">Must be unique</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-person-check me-2"></i>Create Student & Generate QR
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <div id="student-result" class="h-100">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                                    <div class="text-center text-muted">
+                                        <i class="bi bi-qr-code" style="font-size: 3rem;"></i>
+                                        <p class="mt-3">Student QR code will appear here after registration</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add Session Tab -->
+            <div class="tab-pane fade" id="add-session">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-3">Create Attendance Session</h5>
+                                <form id="sessionForm">
+                                    <div class="mb-3">
+                                        <label class="form-label">Subject Name *</label>
+                                        <input type="text" name="subject" class="form-control" placeholder="Enter subject name" required>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Start Time *</label>
+                                            <input type="datetime-local" name="start_time" class="form-control" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">End Time *</label>
+                                            <input type="datetime-local" name="end_time" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Repeat for (Days)</label>
+                                            <input type="number" name="repeat_days" class="form-control" value="1" min="1">
+                                        </div>
+                                        <div class="col-md-6 d-flex align-items-end">
+                                            <div class="form-check">
+                                                <input type="checkbox" name="include_weekends" class="form-check-input" checked id="weekends">
+                                                <label class="form-check-label" for="weekends">Include Weekends</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-calendar-check me-2"></i>Schedule Sessions
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Debug Section (Optional) -->
+<div class="mt-4">
+    <details>
+        <summary class="text-muted small">Debug QR Issues</summary>
+        <div class="mt-2">
+            <button class="btn btn-sm btn-outline-secondary" onclick="testQR()">Test QR Generation</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="checkStorage()">Check Storage</button>
+            <div id="debug-info" class="mt-2 small"></div>
+        </div>
+    </details>
+</div>
+
+<script>
+       
+    if (!document.cookie.includes('admin_logged_in=true')) {
+        window.location.href = "/";
+    }
+    document.getElementById('studentForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const resultDiv = document.getElementById('student-result');
+        resultDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm"></div> Registering...</div>';
+
+        const formData = new FormData(e.target);
+        
+        try {
+            const res = await fetch('/admin/student/register', { 
+                method: 'POST', 
+                body: formData 
+            });
+            const data = await res.json();
+
+            if(res.ok) {
+                // Handle QR path correctly
+                const qrUrl = data.qr_code.startsWith('/') ? data.qr_code : '/' + data.qr_code;
+                const qrFilename = data.qr_code.split('/').pop();
+                
+                resultDiv.innerHTML = `
+                    <div class="card border-success">
+                        <div class="card-body text-center p-4">
+                            <div class="text-success mb-3">
+                                <i class="bi bi-check-circle-fill" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <h5 class="text-success mb-3">Registration Successful!</h5>
+                            
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <div class="text-muted small">Name</div>
+                                    <div class="fw-bold">${data.name}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-muted small">Roll No</div>
+                                    <div class="fw-bold">${data.roll_no}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="qr-container mb-4" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                <img src="${qrUrl}" 
+                                     alt="QR Code for ${data.name}" 
+                                     class="img-fluid" 
+                                     style="max-width: 200px;"
+                                     onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.roll_no)}';">
+                                <div class="qr-fallback mt-2 text-muted small" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i> QR failed to load
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a href="${qrUrl}" download="${qrFilename || 'qr_code.png'}" 
+                                   class="btn btn-outline-dark">
+                                    <i class="bi bi-download me-2"></i>Download QR
+                                </a>
+                                <button onclick="copyToClipboard('${data.roll_no}')" 
+                                        class="btn btn-outline-primary">
+                                    <i class="bi bi-clipboard me-2"></i>Copy Roll No
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Auto-hide fallback message if image loads
+                setTimeout(() => {
+                    const img = resultDiv.querySelector('img');
+                    const fallback = resultDiv.querySelector('.qr-fallback');
+                    if (img && img.complete && img.naturalHeight !== 0) {
+                        fallback.style.display = 'none';
+                    } else {
+                        fallback.style.display = 'block';
+                    }
+                }, 1000);
+                
+                e.target.reset();
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ${data.detail || "Registration failed"}
+                    </div>
+                `;
+            }
+        } catch (err) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Server connection failed
+                </div>
+            `;
+        }
+    };
+
+    // Session Creation
+    document.getElementById('sessionForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        if (!formData.has("include_weekends")) {
+            formData.append("include_weekends", "false");
+        }
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating...';
+        submitBtn.disabled = true;
+
+        try {
+            const res = await fetch('/admin/session/create', { 
+                method: 'POST', 
+                body: formData 
+            });
+            
+            if(res.ok) {
+                const result = await res.json();
+                
+                // Success notification
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+                alertDiv.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <div>
+                            <strong>Success!</strong><br>
+                            <small>${result.sessions_created} session(s) created</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(alertDiv);
+                
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+                
+                e.target.reset();
+                loadSessions();
+                
+                // Switch to dashboard to see new session
+                document.querySelector('[data-bs-target="#dashboard"]').click();
+            } else {
+                const err = await res.json();
+                throw new Error(err.detail || "Failed to create session");
+            }
+        } catch (error) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>
+                        <strong>Error!</strong><br>
+                        <small>${error.message}</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    };
+
+// 1. Updated loadSessions to make cards clickable
+    async function loadSessions() {
+        const listDiv = document.getElementById('session-list');
+        try {
+            const res = await fetch('/admin/session/all');
+            const data = await res.json();
+            
+            if (data.length === 0) {
+                listDiv.innerHTML = `<div class="col-12 text-center py-5">...</div>`;
+                return;
+            }
+
+            listDiv.innerHTML = data.map(s => {
+                const start = new Date(s.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const end = new Date(s.end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const date = new Date(s.start_time).toLocaleDateString();
+                const statusClass = s.status === 'pending' ? 'badge-pending' : 'badge-completed';
+                const statusIcon = s.status === 'pending' ? 'bi-clock' : 'bi-check-circle';
+
+                return `
+                <div class="col-md-6 col-lg-4" onclick="viewAttendance(${s.id}, '${s.subject}')" style="cursor: pointer;">
+                    <div class="card session-card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="card-title mb-1 fw-bold text-primary">${s.subject}</h6>
+                                    <small class="text-muted">${date}</small>
+                                </div>
+                                <span class="status-badge ${statusClass}">
+                                    <i class="bi ${statusIcon} me-1"></i>${s.status}
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-clock text-muted me-2"></i>
+                                <span>${start} - ${end}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <span class="text-muted small">Present Students</span>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-people-fill text-success me-2"></i>
+                                    <span class="h5 mb-0 fw-bold">${s.attended_count}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (err) {
+            listDiv.innerHTML = `<div class="col-12">...</div>`;
+        }
+    }
+
+    async function viewAttendance(sessionId, subject) {
+        const modalElement = document.getElementById('attendanceModal');
+        const modal = new bootstrap.Modal(modalElement);
+        const listDiv = document.getElementById('studentList');
+        const loader = document.getElementById('modalLoader');
+        
+        document.getElementById('modalSubject').innerText = `Attendance: ${subject}`;
+        listDiv.innerHTML = '';
+        loader.classList.remove('d-none');
+        modal.show();
+
+        try {
+            const res = await fetch(`/admin/session/${sessionId}/attendance`);
+            const students = await res.json();
+            loader.classList.add('d-none');
+
+            if (students.length === 0) {
+                listDiv.innerHTML = '<div class="p-4 text-center text-muted">No students present for this session yet.</div>';
+                return;
+            }
+
+            listDiv.innerHTML = students.map(st => `
+                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                    <div>
+                        <h6 class="mb-0 fw-bold">${st.name}</h6>
+                        <small class="text-muted">Roll No: ${st.roll_no}</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-light text-success border">Present</span>
+                        <div class="small text-muted mt-1" style="font-size: 0.7rem;">In at: ${st.scan_time}</div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            loader.classList.add('d-none');
+            listDiv.innerHTML = '<div class="p-4 text-center text-danger">Error loading attendance data.</div>';
+        }
+    }
+
+    // Helper functions
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+            alert.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 200px;';
+            alert.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <div>Roll number copied!</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        });
+    }
+
+    // Debug functions
+    async function testQR() {
+        const debugDiv = document.getElementById('debug-info');
+        debugDiv.innerHTML = '<div class="text-info">Testing QR generation...</div>';
+        
+        // Test with a sample roll number
+        const testData = new FormData();
+        testData.append('name', 'Test Student');
+        testData.append('email', 'test@example.com');
+        testData.append('roll_no', 'TEST' + Date.now());
+        
+        try {
+            const res = await fetch('/admin/student/register', {
+                method: 'POST',
+                body: testData
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                debugDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <strong>Success!</strong><br>
+                        QR Path: ${data.qr_code}<br>
+                        Full URL: /${data.qr_code}<br>
+                        <div class="mt-2">
+                            <img src="/${data.qr_code}" style="max-width: 100px; border: 1px solid #ddd;" 
+                                 onerror="this.style.display='none';">
+                        </div>
+                    </div>
+                `;
+            } else {
+                debugDiv.innerHTML = `<div class="alert alert-danger">Error: ${JSON.stringify(data)}</div>`;
+            }
+        } catch (err) {
+            debugDiv.innerHTML = `<div class="alert alert-danger">Network error: ${err.message}</div>`;
+        }
+    }
+    
+    async function checkStorage() {
+        const debugDiv = document.getElementById('debug-info');
+        debugDiv.innerHTML = '<div class="text-info">Checking storage configuration...</div>';
+        
+        try {
+            const res = await fetch('/admin/debug/storage');
+            const data = await res.json();
+            debugDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Storage Info:</strong><br>
+                    <pre class="mb-0 small" style="white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+        } catch (err) {
+            debugDiv.innerHTML = `<div class="alert alert-warning">Cannot fetch storage info. Endpoint may not exist.</div>`;
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', loadSessions);
+    
+    // Auto-refresh sessions every 30 seconds
+    setInterval(() => {
+        if (document.querySelector('#dashboard.active')) {
+            loadSessions();
+        }
+    }, 30000);
+
+    function logout() {
+        
+        document.cookie = "admin_logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        
+        window.location.href = "/";
+    }
+</script>
+
+<style>
+    .status-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .badge-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .badge-completed {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    .session-card {
+        border-left: 4px solid #4361ee;
+        transition: all 0.3s ease;
+    }
+    
+    .session-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .nav-tabs-custom .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s;
+    }
+    
+    .nav-tabs-custom .nav-link.active {
+        color: #4361ee;
+        background: transparent;
+        border-bottom: 3px solid #4361ee;
+    }
+    
+    .qr-container img {
+        transition: opacity 0.3s;
+    }
+    
+    .qr-fallback {
+        color: #dc3545;
+        font-size: 0.9rem;
+    }
+</style>
+<div class="modal fade" id="attendanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalSubject">Session Attendance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="modalLoader" class="text-center py-4 d-none">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                <div class="list-group list-group-flush" id="studentList">
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

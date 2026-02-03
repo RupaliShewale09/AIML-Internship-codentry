@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+        <div class="text-center mb-5">
+            <div class="rounded-circle-icon mb-3">
+                <i class="bi bi-camera text-white"></i>
+            </div>
+            <h2 class="fw-bold">Attendance Scanner</h2>
+            <p class="text-muted">Scan student QR codes to mark attendance</p>
+        </div>
+
+        <div class="card border-0 shadow-lg">
+            <div class="card-body p-4">
+                <!-- Scanner Container -->
+                <div id="reader" class="rounded-3 overflow-hidden" 
+                     style="width: 100%; max-width: 500px; margin: 0 auto; aspect-ratio: 1;"></div>
+                
+                <!-- Status Display -->
+                <div id="status" class="mt-4 text-center"></div>
+                
+                <!-- Scanner Controls -->
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button id="pauseBtn" class="btn btn-outline-warning d-none">
+                        <i class="bi bi-pause-circle me-2"></i>Paused
+                    </button>
+                    <button id="resumeBtn" class="btn btn-outline-success d-none">
+                        <i class="bi bi-play-circle me-2"></i>Resume
+                    </button>
+                </div>
+                
+                <!-- Instructions -->
+                <div class="mt-5 pt-4 border-top">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3">
+                                <div class="bg-light rounded-circle d-inline-flex p-3 mb-2">
+                                    <i class="bi bi-qr-code-scan text-primary"></i>
+                                </div>
+                                <h6 class="fw-semibold">Position QR Code</h6>
+                                <p class="small text-muted mb-0">Place QR within scanner frame</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3">
+                                <div class="bg-light rounded-circle d-inline-flex p-3 mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                </div>
+                                <h6 class="fw-semibold">Wait for Confirmation</h6>
+                                <p class="small text-muted mb-0">Audio confirmation on success</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3">
+                                <div class="bg-light rounded-circle d-inline-flex p-3 mb-2">
+                                    <i class="bi bi-clock-history text-warning"></i>
+                                </div>
+                                <h6 class="fw-semibold">Auto Resume</h6>
+                                <p class="small text-muted mb-0">Continues after 30 seconds</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audio for scan confirmation -->
+<audio id="buzzer" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+</audio>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    // DOM Elements
+    const buzzer = document.getElementById('buzzer');
+    const statusDiv = document.getElementById('status');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    
+    let isPaused = false;
+    let html5QrcodeScanner;
+    let countdownInterval;
+
+    // Play success sound
+    function playSuccessSound() {
+        buzzer.currentTime = 0;
+        buzzer.play();
+        setTimeout(() => {
+            buzzer.currentTime = 0;
+            buzzer.play();
+        }, 200);
+    }
+
+    // Update status display
+    function updateStatus(message, type = 'info') {
+        const colors = {
+            'success': 'alert-success',
+            'error': 'alert-danger',
+            'info': 'alert-info',
+            'warning': 'alert-warning'
+        };
+        
+        statusDiv.innerHTML = `
+            <div class="alert ${colors[type]} alert-dismissible fade show mb-0" role="alert">
+                <div class="d-flex align-items-center justify-content-center">
+                    ${type === 'success' ? '<i class="bi bi-check-circle-fill me-2"></i>' : ''}
+                    ${type === 'error' ? '<i class="bi bi-x-circle-fill me-2"></i>' : ''}
+                    ${type === 'warning' ? '<i class="bi bi-exclamation-triangle-fill me-2"></i>' : ''}
+                    <div>${message}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Start countdown timer
+    function startCountdown(duration = 30) {
+        let remaining = duration;
+        
+        clearInterval(countdownInterval);
+        
+        countdownInterval = setInterval(() => {
+            const timerElement = statusDiv.querySelector('.timer');
+            if (timerElement) {
+                timerElement.textContent = `Scanner locked for ${remaining}s...`;
+            }
+            
+            remaining--;
+            
+            if (remaining < 0) {
+                clearInterval(countdownInterval);
+                statusDiv.innerHTML = '';
+                resumeScanner();
+            }
+        }, 1000);
+    }
+
+    // Pause scanner
+    function pauseScanner() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.pause(true);
+            isPaused = true;
+            pauseBtn.classList.add('d-none');
+            resumeBtn.classList.remove('d-none');
+        }
+    }
+
+    // Resume scanner
+    function resumeScanner() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.resume();
+            isPaused = false;
+            resumeBtn.classList.add('d-none');
+            pauseBtn.classList.add('d-none');
+        }
+    }
+
+    // Scan success handler
+    function onScanSuccess(decodedText) {
+        if (isPaused) return;
+        
+        pauseScanner();
+        
+        let formData = new FormData();
+        formData.append("qr_code", decodedText);
+
+        fetch("/attendance/scan", { 
+            method: "POST", 
+            body: formData 
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.student_name) {
+                // Success
+                playSuccessSound();
+                updateStatus(
+                    `<strong>${data.student_name}</strong> marked <span class="badge bg-success">${data.scan_type}</span><br>
+                    <small class="text-muted timer">Scanner locked for 30s...</small>`,
+                    'success'
+                );
+                
+                startCountdown();
+                
+            } else {
+                // Error
+                updateStatus(
+                    `<strong>Error:</strong> ${data.detail || "Invalid QR code"}`,
+                    'error'
+                );
+                
+                setTimeout(() => {
+                    resumeScanner();
+                }, 3000);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            updateStatus(
+                `<strong>Error:</strong> Network error occurred`,
+                'error'
+            );
+            resumeScanner();
+        });
+    }
+
+    // Initialize scanner
+    function initScanner() {
+        const config = { 
+            fps: 20, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            showTorchButtonIfSupported: true,
+            showZoomSliderIfSupported: true
+        };
+        
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", config);
+        html5QrcodeScanner.render(onScanSuccess);
+    }
+
+    // Event listeners for manual controls
+    pauseBtn.addEventListener('click', () => {
+        pauseScanner();
+        updateStatus('Scanner paused manually', 'warning');
+    });
+    
+    resumeBtn.addEventListener('click', () => {
+        resumeScanner();
+        updateStatus('Scanner resumed', 'success');
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 2000);
+    });
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', initScanner);
+</script>
+
+<style>
+    #reader {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    #reader video {
+        border-radius: 12px;
+    }
+    
+    .alert {
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
