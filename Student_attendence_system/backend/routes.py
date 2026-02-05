@@ -7,6 +7,7 @@ from backend.database import get_db
 from backend import models, schemas
 from backend.qr_utils import generate_qr
 from backend.attendance_logic import get_next_scan_type
+from backend.email_utils import send_qr_email
 
 router = APIRouter()
 
@@ -43,10 +44,19 @@ def register_student(
     db.commit()
     db.refresh(student)
 
-    qr_code, _ = generate_qr(student.id)
+    qr_code, qr_path = generate_qr(student.id)
     student.qr_code = qr_code
     db.commit()
     db.refresh(student)
+
+    try:
+        send_qr_email(
+            to_email=student.email,
+            student_name=student.name,
+            qr_path=qr_path
+        )
+    except Exception as e:
+        print("Email error:", e)
 
     return student
 
