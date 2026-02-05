@@ -209,6 +209,10 @@
                                      class="img-fluid" 
                                      style="max-width: 200px;"
                                      onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.roll_no)}';">
+                                <div class="alert alert-info mt-3 py-2 small">
+                                    <i class="bi bi-envelope-check me-2"></i>
+                                    QR code has been sent to <strong>${data.email}</strong>
+                                </div>
                                 <div class="qr-fallback mt-2 text-muted small" style="display: none;">
                                     <i class="bi bi-exclamation-triangle"></i> QR failed to load
                                 </div>
