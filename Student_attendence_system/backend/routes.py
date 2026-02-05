@@ -8,18 +8,17 @@ from backend import models, schemas
 from backend.qr_utils import generate_qr
 from backend.attendance_logic import get_next_scan_type
 from backend.email_utils import send_qr_email
+from backend.config import settings
 
 router = APIRouter()
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
 # ------------------ LOGIN ROUTE ------------------
 @router.post("/admin/login")
 def admin_login(
     response: Response,
     credentials: schemas.AdminLogin = Depends(schemas.AdminLogin.as_form)
 ):
-    if credentials.username != ADMIN_USERNAME or credentials.password != ADMIN_PASSWORD:
+    if credentials.username != settings.ADMIN_USERNAME or credentials.password != settings.ADMIN_PASSWORD:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid admin credentials"
