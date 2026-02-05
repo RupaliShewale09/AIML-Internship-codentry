@@ -34,12 +34,7 @@ async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/admin", response_class=HTMLResponse)
-async def admin_page(request: Request):
-    is_logged_in = request.cookies.get("admin_logged_in")
-    
-    if is_logged_in != "true":
-        return RedirectResponse(url="/", status_code=303)
-        
+async def admin_page(request: Request):        
     return templates.TemplateResponse("admin.html", {"request": request})
 
 @app.get("/scanner", response_class=HTMLResponse)

@@ -162,9 +162,18 @@
 
 <script>
        
-    if (!document.cookie.includes('admin_logged_in=true')) {
+    // Token ko fetch calls ke header mein add karne ke liye function
+    const getHeaders = () => {
+        const token = localStorage.getItem('admin_access_token');
+        if (!token) { window.location.href = "/"; return {}; }
+        return { 'Authorization': `Bearer ${token}` }; // verify_admin_jwt expects this
+    }
+
+    // Check auth on load
+    if (!localStorage.getItem('admin_access_token')) {
         window.location.href = "/";
     }
+
     document.getElementById('studentForm').onsubmit = async (e) => {
         e.preventDefault();
         const resultDiv = document.getElementById('student-result');
@@ -175,8 +184,12 @@
         try {
             const res = await fetch('/admin/student/register', { 
                 method: 'POST', 
-                body: formData 
+                headers: getHeaders(),
+                body: new FormData(e.target)
             });
+
+            if (res.status === 401) logout();
+
             const data = await res.json();
 
             if(res.ok) {
@@ -279,7 +292,8 @@
         try {
             const res = await fetch('/admin/session/create', { 
                 method: 'POST', 
-                body: formData 
+                headers: getHeaders(),
+                body: new FormData(e.target) 
             });
             
             if(res.ok) {
@@ -339,11 +353,15 @@
         }
     };
 
-// 1. Updated loadSessions to make cards clickable
+
     async function loadSessions() {
         const listDiv = document.getElementById('session-list');
         try {
-            const res = await fetch('/admin/session/all');
+            const res = await fetch('/admin/session/all', {
+                method: 'GET',
+                headers: getHeaders() // JWT Header
+            });
+            if (res.status === 401) logout();
             const data = await res.json();
             
             if (data.length === 0) {
@@ -403,7 +421,9 @@
         modal.show();
 
         try {
-            const res = await fetch(`/admin/session/${sessionId}/attendance`);
+            const res = await fetch(`/admin/session/${sessionId}/attendance`, {
+                headers: getHeaders() // JWT Header
+            });
             const students = await res.json();
             loader.classList.add('d-none');
 
@@ -507,8 +527,6 @@
         }
     }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', loadSessions);
     
     // Auto-refresh sessions every 30 seconds
     setInterval(() => {
@@ -517,12 +535,12 @@
         }
     }, 30000);
 
-    function logout() {
-        
-        document.cookie = "admin_logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    function logout() {  
+       localStorage.removeItem('admin_access_token');
         
         window.location.href = "/";
     }
+    document.addEventListener('DOMContentLoaded', loadSessions);
 </script>
 
 <style>

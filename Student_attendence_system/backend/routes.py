@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime, time
 
@@ -9,13 +9,13 @@ from backend.qr_utils import generate_qr
 from backend.attendance_logic import get_next_scan_type
 from backend.email_utils import send_qr_email
 from backend.config import settings
+from backend.jwt_utils import create_admin_token, verify_admin_jwt
 
 router = APIRouter()
 
 # ------------------ LOGIN ROUTE ------------------
 @router.post("/admin/login")
 def admin_login(
-    response: Response,
     credentials: schemas.AdminLogin = Depends(schemas.AdminLogin.as_form)
 ):
     if credentials.username != settings.ADMIN_USERNAME or credentials.password != settings.ADMIN_PASSWORD:
@@ -23,15 +23,20 @@ def admin_login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid admin credentials"
         )
-    response.set_cookie(key="admin_logged_in", value="true", httponly=False, path="/")
-    return {"message": "Login successful", "admin": credentials.username}
+    token = create_admin_token()
+    return {
+        "message": "Login successful", 
+        "access_token" : token,
+        "admin": credentials.username
+    }
 
 
 # ---------------- STUDENT REGISTER ----------------
 @router.post("/admin/student/register", response_model=schemas.StudentResponse)
 def register_student(
     data: schemas.StudentCreate = Depends(schemas.StudentCreate.as_form),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(verify_admin_jwt)
 ):
     student = models.Student(
         name=data.name,
@@ -64,7 +69,8 @@ def register_student(
 @router.post("/admin/session/create")
 def create_session(
     data: schemas.SessionCreate = Depends(schemas.SessionCreate.as_form),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin=Depends(verify_admin_jwt)
 ):
     sessions_created = []
 
@@ -90,7 +96,10 @@ def create_session(
 
 # ---------------- GET ALL SESSIONS ----------------
 @router.get("/admin/session/all", response_model=list[schemas.SessionResponse])
-def get_all_sessions(db: Session = Depends(get_db)):
+def get_all_sessions(
+    db: Session = Depends(get_db),
+    admin=Depends(verify_admin_jwt)
+):
     now = datetime.now()
     
     # Aaj ki saari sessions uthayein
@@ -107,28 +116,31 @@ def get_all_sessions(db: Session = Depends(get_db)):
             session.status = models.SessionStatus.completed
             db.add(session)
 
-        if now < session.start_time:
-            session.attended_count = 0 
-            count = 0
-            all_students = db.query(models.Student).all()
+            # session.attended_count = 0 
+        count = 0
+        all_students = db.query(models.Student).all()
             
-            for student in all_students:
-                last_log = db.query(models.AttendanceLog).filter(
-                    models.AttendanceLog.student_id == student.id,
-                    models.AttendanceLog.scan_time <= session.end_time
-                ).order_by(models.AttendanceLog.scan_time.desc()).first()
+        for student in all_students:
+            last_log = db.query(models.AttendanceLog).filter( 
+                models.AttendanceLog.student_id == student.id,
+                models.AttendanceLog.scan_time <= session.end_time
+            ).order_by(models.AttendanceLog.scan_time.desc()).first()
 
-                if last_log and last_log.scan_type == "IN":
-                    count += 1
+            if last_log and last_log.scan_type == "IN":
+                count += 1
             
-            session.attended_count = count
+        session.attended_count = count
 
     db.commit()
     return sessions
 
 
 @router.get("/admin/session/{session_id}/attendance", response_model=list[dict])
-def get_session_attendance(session_id: int, db: Session = Depends(get_db)):
+def get_session_attendance(
+    session_id: int, 
+    db: Session = Depends(get_db),
+    admin=Depends(verify_admin_jwt)
+):
     session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
